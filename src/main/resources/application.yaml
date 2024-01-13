@@ -1,0 +1,57 @@
+#basic keycloak config
+
+issuer: https://example.com/realms/example
+client-id: exampleclient
+client-secret: abc
+client-uri: http://localhost:8080
+
+
+server:
+  port: 8080
+  forward-headers-strategy: native
+  error:
+    include-message: always
+    include-stacktrace: never
+spring:
+  profiles:
+    default: prod
+    active: "@active.profile@"
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: ${issuer}
+        registration:
+          keycloak-user:
+            authorization-grant-type: authorization_code
+            client-name: My Keycloak instance
+            client-id: ${client-id}
+            client-secret: ${client-secret}
+            provider: keycloak
+            scope: openid,profile,email,offline_access
+
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+        - iss: ${issuer}
+          username-claim: $.preferred_username
+          authorities:
+          - path: $.realm_access.roles
+          - path: $.resource_access.*.roles
+        client:
+          security-matchers: /**
+          permit-all:
+          - /login/**
+          - /logout/**
+          - /oauth2/**
+          - /public/**
+          - /webjars/**
+          - /npm/**
+          - /images/**
+          client-uri: ${client-uri}
+          post-login-redirect-path: /
+          post-logout-redirect-path: /
+          csrf: session
